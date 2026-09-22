@@ -37,7 +37,7 @@
 <span class="badge">Gemstone Reference Engine</span>
 <h1>9-Graha Spinel Combination Master</h1>
 <p>Select two Grahas, their conditions, and the relationship between them to generate a context-aware Spinel recommendation, the negative pattern being addressed, and the intended function of the stone.</p>
-<div class="notice"><b>Reference rule:</b> Spinel mineral identity and colour are gemological facts. Planetary correspondences, dosha interpretations and energetic functions on this page are <b>SYSTEM DERIVED / PRACTITIONER FRAMEWORK</b>, not scientifically proven effects and not automatically a universally accepted classical Jyotisha rule. Use chart context before prescribing any gemstone.</div>
+<div class="notice"><b>Reference rule:</b> Spinel mineral identity and colour are gemological facts. Planetary correspondences, dosha interpretations and energetic functions on this page are <b>SYSTEM DERIVED / PRACTITIONER FRAMEWORK</b>, not scientifically proven effects and not automatically a universally accepted classical Jyotisha rule. Affordable alternatives are <b>functional substitutes</b>, not gemologically equivalent replacements. Use chart context before prescribing any gemstone.</div>
 </section>
 
 <section class="card">
@@ -64,7 +64,7 @@
 </section>
 
 <section class="card">
-<h2>Spinel Role Key</h2>
+<h2>Spinel & Affordable Alternative Role Key</h2>
 <div class="grid">
 <div class="module"><h3>Enhancer</h3><p>Supports or amplifies the constructive expression assigned to a Graha.</p></div>
 <div class="module"><h3>Stabilizer</h3><p>Used when the goal is steadiness and controlled expression rather than stronger amplification.</p></div>
@@ -72,6 +72,7 @@
 <div class="module"><h3>Negative Filter</h3><p>Symbolically filters the heavier or disruptive expression attributed to a Graha combination.</p></div>
 <div class="module"><h3>Shield</h3><p>Protective-use classification, especially for Black Spinel in Saturn/Rahu/Ketu-oriented work.</p></div>
 <div class="module"><h3>Grounding</h3><p>Used for heaviness, instability, over-stimulation or scattered nodal/Saturn-type patterns.</p></div>
+<div class="module"><h3>Affordable Alternative</h3><p>A lower-cost functional stone chosen to approximate the intended astrological role. It is not chemically or gemologically equivalent to Spinel.</p></div>
 </div>
 </section>
 
@@ -498,6 +499,38 @@ const conditionStone={
  }
 };
 
+
+const affordableAlternatives=[
+ {match:["black spinel"],stone:"Black Tourmaline",role:"Negative Filter • Shield • Grounding"},
+ {match:["grey spinel","smoky grey"],stone:"Smoky Quartz",role:"Stabilizer • Grounding"},
+ {match:["dark blue spinel"],stone:"Iolite",role:"Controlled Saturn Support • Stabilizer"},
+ {match:["purple spinel","violet spinel"],stone:"Amethyst",role:"Spiritual Stabilizer • Retrograde Reserve • Wisdom Support"},
+ {match:["yellow spinel"],stone:"Citrine",role:"Jupiter Enhancer • Wisdom / Prosperity Support"},
+ {match:["green spinel","bluish-green spinel"],stone:"Green Aventurine",role:"Mental Stabilizer • Gentle Mercury Support"},
+ {match:["pink spinel","light pink spinel"],stone:"Rose Quartz",role:"Emotional Harmonizer • Gentle Venus/Moon Support"},
+ {match:["lavender spinel"],stone:"Amethyst",role:"Calming • Emotional / Spiritual Stabilizer"},
+ {match:["orange-red spinel","orange spinel"],stone:"Carnelian",role:"Motivation • Activation"},
+ {match:["deep red spinel","red spinel"],stone:"Red Garnet",role:"Enhancer • Courage • Activation"}
+];
+
+function affordableFor(spinelText,roles=[]){
+ const txt=String(spinelText||"").toLowerCase();
+ const hits=[];
+ affordableAlternatives.forEach(x=>{
+   if(x.match.some(m=>txt.includes(m)) && !hits.some(h=>h.stone===x.stone)) hits.push({stone:x.stone,role:x.role});
+ });
+ if(!hits.length){
+   if(roles.includes("Negative Filter")||roles.includes("Shield")) hits.push({stone:"Black Tourmaline",role:"Negative Filter • Shield • Grounding"});
+   else if(roles.includes("Grounding")||roles.includes("Stabilizer")) hits.push({stone:"Smoky Quartz",role:"Stabilizer • Grounding"});
+   else hits.push({stone:"Use the affordable stone matching the required Graha function",role:roles.join(" • ")||"Functional substitute"});
+ }
+ return hits;
+}
+function altHtml(spinelText,roles=[]){
+ const hits=affordableFor(spinelText,roles);
+ return hits.map(x=>'<div><strong>'+esc(x.stone)+'</strong><div class="mini">'+esc(x.role)+'</div></div>').join('<div style="height:8px"></div>');
+}
+
 function keyFor(a,b){return [a,b].sort((x,y)=>order.indexOf(x)-order.indexOf(y)).join("|")}
 function esc(v){return String(v??"—").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 function pills(arr){return '<div class="role-row">'+arr.map((x,i)=>'<span class="role-pill '+(i===0?'primary':'')+'">'+esc(x)+'</span>').join('')+'</div>'}
@@ -563,6 +596,8 @@ function render(){
    '<div class="metric"><span>Primary Spinel</span><strong>'+esc(primary)+'</strong></div>'+
    '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(secondary||A.secondary)+'</strong></div>'+
    '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
+   '<div class="metric"><span>Affordable Functional Alternative</span>'+altHtml(primary,roles)+'</div>'+
+   '<div class="metric wide"><span>Alternative to Secondary Spinel</span>'+altHtml(secondary||A.secondary,roles)+'</div>'+
  '<div class="metric wide"><span>Relationship / Context</span><strong>'+esc(RP.strategy)+': '+esc(RP.effect)+'</strong></div>'+
    '<div class="metric wide"><span>Condition strategy</span><strong>'+esc(ca)+': '+esc(conditionText(a,ca))+'<br>'+esc(cb)+': '+esc(conditionText(b,cb))+'</strong></div>'+
    '<div class="metric wide"><span>Caution</span><strong>'+esc(A.caution)+'</strong></div>';
