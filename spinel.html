@@ -14,7 +14,7 @@
 .spinel-card{border-left:5px solid var(--gold)}
 .spinel-name{font-size:21px;font-weight:900;color:var(--green)}
 .mini{font-size:12px;color:var(--muted);line-height:1.5}
-@media(max-width:820px){.selector-grid{grid-template-columns:1fr}}
+.alt-table{width:100%;border-collapse:collapse;margin-top:10px}.alt-table th,.alt-table td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}.alt-table th{background:var(--soft)}.alt-highlight{background:#fffaf0;border:1px solid #ead48b;border-radius:8px;padding:12px;margin-top:12px}.alt-highlight strong{font-size:16px}@media(max-width:820px){.selector-grid{grid-template-columns:1fr}.alt-table{font-size:13px}.alt-table th,.alt-table td{padding:8px}}
 </style>
 </head>
 <body>
@@ -60,6 +60,7 @@
 <select id="rel"></select>
 </div>
 <div class="notice" style="margin-top:12px"><b>Condition + relationship logic:</b> The engine first evaluates each planet's condition, then modifies the recommendation according to how directly the two Grahas interact. Conjunction and Parivartana are treated as stronger blending contexts; aspects are directional or mutual influences; Same Rasi is shared-field influence; Dasha–Bhukti is a timing/context relationship rather than a physical conjunction.</div>
+<div class="alt-highlight"><strong>Affordable gemstone recommendation will appear in the analysis below.</strong><div class="mini">Look for the fields <b>Affordable Alternative to Primary</b> and <b>Affordable Alternative to Secondary / Conditional</b>.</div></div>
 <div id="out" class="details"></div>
 </section>
 
@@ -72,10 +73,30 @@
 <div class="module"><h3>Negative Filter</h3><p>Symbolically filters the heavier or disruptive expression attributed to a Graha combination.</p></div>
 <div class="module"><h3>Shield</h3><p>Protective-use classification, especially for Black Spinel in Saturn/Rahu/Ketu-oriented work.</p></div>
 <div class="module"><h3>Grounding</h3><p>Used for heaviness, instability, over-stimulation or scattered nodal/Saturn-type patterns.</p></div>
-<div class="module"><h3>Affordable Alternative</h3><p>A lower-cost functional stone chosen to approximate the intended astrological role. It is not chemically or gemologically equivalent to Spinel.</p></div>
+<div class="module"><h3>Affordable Alternative</h3><p>The actual affordable gemstone appears in the analysis result above. Examples include Black Tourmaline, Smoky Quartz, Amethyst, Citrine, Red Garnet, Rose Quartz, Green Aventurine, Carnelian and Iolite.</p></div>
 </div>
 </section>
 
+
+<section class="card">
+<h2>Affordable Gemstone Reference</h2>
+<p class="mini">These are functional alternatives in this practitioner framework, not gemological equivalents to Spinel.</p>
+<table class="alt-table">
+<thead><tr><th>Premium Spinel</th><th>Affordable Alternative</th><th>Main Function</th></tr></thead>
+<tbody>
+<tr><td>Red Spinel</td><td><strong>Red Garnet</strong></td><td>Enhancer • Courage • Activation</td></tr>
+<tr><td>Orange / Orange-Red Spinel</td><td><strong>Carnelian</strong></td><td>Motivation • Activation</td></tr>
+<tr><td>Pink / Light Pink Spinel</td><td><strong>Rose Quartz</strong></td><td>Emotional Harmonizer • Gentle Venus/Moon Support</td></tr>
+<tr><td>Lavender Spinel</td><td><strong>Amethyst</strong></td><td>Calming • Emotional / Spiritual Stabilizer</td></tr>
+<tr><td>Green / Bluish-Green Spinel</td><td><strong>Green Aventurine</strong></td><td>Mental Stabilizer • Gentle Mercury Support</td></tr>
+<tr><td>Yellow Spinel</td><td><strong>Citrine</strong></td><td>Jupiter Enhancer • Wisdom / Prosperity Support</td></tr>
+<tr><td>Purple / Violet Spinel</td><td><strong>Amethyst</strong></td><td>Spiritual Stabilizer • Retrograde Reserve • Wisdom Support</td></tr>
+<tr><td>Grey Spinel</td><td><strong>Smoky Quartz</strong></td><td>Stabilizer • Grounding</td></tr>
+<tr><td>Black Spinel</td><td><strong>Black Tourmaline</strong></td><td>Negative Filter • Shield • Grounding</td></tr>
+<tr><td>Dark Blue Spinel</td><td><strong>Iolite</strong></td><td>Controlled Saturn Support • Stabilizer</td></tr>
+</tbody>
+</table>
+</section>
 <footer>Shri Ugra Mahalakshmy Astrology V2 • Spinel Graha Master • Practitioner framework</footer>
 </main>
 
@@ -596,8 +617,8 @@ function render(){
    '<div class="metric"><span>Primary Spinel</span><strong>'+esc(primary)+'</strong></div>'+
    '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(secondary||A.secondary)+'</strong></div>'+
    '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
-   '<div class="metric"><span>Affordable Functional Alternative</span>'+altHtml(primary,roles)+'</div>'+
-   '<div class="metric wide"><span>Alternative to Secondary Spinel</span>'+altHtml(secondary||A.secondary,roles)+'</div>'+
+   '<div class="metric"><span>💎 Affordable Gemstone Substitute</span>'+altHtml(primary,roles)+'</div>'+
+   '<div class="metric wide"><span>💎 Affordable Substitute for Secondary Spinel</span>'+altHtml(secondary||A.secondary,roles)+'</div>'+
  '<div class="metric wide"><span>Relationship / Context</span><strong>'+esc(RP.strategy)+': '+esc(RP.effect)+'</strong></div>'+
    '<div class="metric wide"><span>Condition strategy</span><strong>'+esc(ca)+': '+esc(conditionText(a,ca))+'<br>'+esc(cb)+': '+esc(conditionText(b,cb))+'</strong></div>'+
    '<div class="metric wide"><span>Caution</span><strong>'+esc(A.caution)+'</strong></div>';
