@@ -36,7 +36,7 @@
 <section class="card hero">
 <span class="badge">Gemstone Reference Engine</span>
 <h1>9-Graha Spinel Combination Master</h1>
-<p>Select two Grahas and their conditions to generate a condition-aware Spinel recommendation, the negative pattern being addressed, and the intended function of the stone.</p>
+<p>Select two Grahas, their conditions, and the relationship between them to generate a context-aware Spinel recommendation, the negative pattern being addressed, and the intended function of the stone.</p>
 <div class="notice"><b>Reference rule:</b> Spinel mineral identity and colour are gemological facts. Planetary correspondences, dosha interpretations and energetic functions on this page are <b>SYSTEM DERIVED / PRACTITIONER FRAMEWORK</b>, not scientifically proven effects and not automatically a universally accepted classical Jyotisha rule. Use chart context before prescribing any gemstone.</div>
 </section>
 
@@ -55,7 +55,11 @@
   <select id="c2"></select>
 </div>
 </div>
-<div class="notice" style="margin-top:12px"><b>Condition logic:</b> The engine changes its strategy according to planetary condition. Retrograde emphasizes reserve/stabilization; Debilitated emphasizes controlled support; Combust emphasizes protection from weakened expression; Afflicted prioritizes filtering; Exalted generally avoids unnecessary amplification. Astronomically or classically inapplicable conditions are flagged automatically.</div>
+<div style="margin-top:12px">
+<label for="rel">Planetary Relationship / Context</label>
+<select id="rel"></select>
+</div>
+<div class="notice" style="margin-top:12px"><b>Condition + relationship logic:</b> The engine first evaluates each planet's condition, then modifies the recommendation according to how directly the two Grahas interact. Conjunction and Parivartana are treated as stronger blending contexts; aspects are directional or mutual influences; Same Rasi is shared-field influence; Dasha–Bhukti is a timing/context relationship rather than a physical conjunction.</div>
 <div id="out" class="details"></div>
 </section>
 
@@ -325,6 +329,59 @@ const overrides = {
 
 const order=["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
 const conditionOrder=["Normal","Retrograde","Debilitated","Combust","Afflicted","Exalted"];
+const relationshipOrder=["Conjunction","Mutual Aspect","1st → 2nd Aspect","2nd → 1st Aspect","Parivartana","Same Rasi","Dasha–Bhukti"];
+
+const relationshipProfiles={
+ "Conjunction":{
+  label:"Conjunction",
+  intensity:4,
+  strategy:"Direct blending",
+  effect:"Both Grahas operate in the same field. The engine treats this as a strong combined pattern and prioritizes stabilization/filtering when either planet is stressed.",
+  roles:["Stabilizer","Negative Filter"]
+ },
+ "Mutual Aspect":{
+  label:"Mutual Aspect",
+  intensity:3,
+  strategy:"Reciprocal influence",
+  effect:"Both Grahas influence one another without occupying the same sign/house. The recommendation balances both conditions more evenly.",
+  roles:["Stabilizer"]
+ },
+ "1st → 2nd Aspect":{
+  label:"1st → 2nd Aspect",
+  intensity:2,
+  strategy:"Directional influence from 1st planet",
+  effect:"The 1st Graha is treated as the influencing planet and the 2nd as the receiving planet. The engine gives slightly more weight to the 1st planet's condition.",
+  roles:["Stabilizer"]
+ },
+ "2nd → 1st Aspect":{
+  label:"2nd → 1st Aspect",
+  intensity:2,
+  strategy:"Directional influence from 2nd planet",
+  effect:"The 2nd Graha is treated as the influencing planet and the 1st as the receiving planet. The engine gives slightly more weight to the 2nd planet's condition.",
+  roles:["Stabilizer"]
+ },
+ "Parivartana":{
+  label:"Parivartana",
+  intensity:4,
+  strategy:"Mutual sign-exchange linkage",
+  effect:"The two Grahas are treated as strongly interdependent. The engine favors a coordinated two-stone strategy when their conditions differ materially.",
+  roles:["Stabilizer","Harmonizer"]
+ },
+ "Same Rasi":{
+  label:"Same Rasi",
+  intensity:2,
+  strategy:"Shared sign environment",
+  effect:"The two Grahas share a common sign field but are not automatically treated as tightly conjunct. The engine uses a moderate blending strategy.",
+  roles:["Stabilizer"]
+ },
+ "Dasha–Bhukti":{
+  label:"Dasha–Bhukti",
+  intensity:3,
+  strategy:"Active timing relationship",
+  effect:"This is treated as a period-based activation rather than a physical chart relationship. The engine prioritizes the Mahadasha-like 1st planet as context and the Bhukti-like 2nd planet as the active modifier.",
+  roles:["Retrograde Reserve","Stabilizer"]
+ }
+};
 
 const applicability={
  Sun:{Retrograde:false,Combust:false},
@@ -466,14 +523,22 @@ function conditionText(planet,condition){
 function severity(condition){
  return {Normal:0,Exalted:1,Retrograde:2,Debilitated:3,Combust:3,Afflicted:4}[condition]??0;
 }
+function relationWeights(rel){
+ if(rel==="1st → 2nd Aspect") return [1.25,0.9];
+ if(rel==="2nd → 1st Aspect") return [0.9,1.25];
+ if(rel==="Dasha–Bhukti") return [1.15,1.1];
+ return [1,1];
+}
 
-const p1=document.getElementById("p1"),p2=document.getElementById("p2"),c1=document.getElementById("c1"),c2=document.getElementById("c2"),out=document.getElementById("out");
+const p1=document.getElementById("p1"),p2=document.getElementById("p2"),c1=document.getElementById("c1"),c2=document.getElementById("c2"),rel=document.getElementById("rel"),out=document.getElementById("out");
 order.forEach(k=>{p1.add(new Option(planets[k].display,k));p2.add(new Option(planets[k].display,k))});
 conditionOrder.forEach(k=>{c1.add(new Option(k,k));c2.add(new Option(k,k))});
-p1.value="Jupiter"; p2.value="Saturn"; c1.value="Retrograde"; c2.value="Afflicted";
+relationshipOrder.forEach(k=>rel.add(new Option(k,k)));
+p1.value="Jupiter"; p2.value="Saturn"; c1.value="Retrograde"; c2.value="Afflicted"; rel.value="Conjunction";
 
 function render(){
- const a=p1.value,b=p2.value,ca=c1.value,cb=c2.value,A=planets[a],B=planets[b];
+ const a=p1.value,b=p2.value,ca=c1.value,cb=c2.value,rv=rel.value,A=planets[a],B=planets[b],RP=relationshipProfiles[rv];
+ const [wA,wB]=relationWeights(rv);
  const invalid=[];
  if(!applicable(a,ca)) invalid.push(conditionText(a,ca));
  if(!applicable(b,cb)) invalid.push(conditionText(b,cb));
@@ -498,6 +563,7 @@ function render(){
    '<div class="metric"><span>Primary Spinel</span><strong>'+esc(primary)+'</strong></div>'+
    '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(secondary||A.secondary)+'</strong></div>'+
    '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
+ '<div class="metric wide"><span>Relationship / Context</span><strong>'+esc(RP.strategy)+': '+esc(RP.effect)+'</strong></div>'+
    '<div class="metric wide"><span>Condition strategy</span><strong>'+esc(ca)+': '+esc(conditionText(a,ca))+'<br>'+esc(cb)+': '+esc(conditionText(b,cb))+'</strong></div>'+
    '<div class="metric wide"><span>Caution</span><strong>'+esc(A.caution)+'</strong></div>';
    return;
@@ -512,7 +578,7 @@ function render(){
  let rationale=ov?.rationale || ('Primary emphasis follows '+A.display+' while '+B.display+' is supported through '+sB[0]+'.');
 
  // Condition-aware strategy: stronger adverse condition takes priority.
- const sevA=severity(ca),sevB=severity(cb);
+ let sevA=severity(ca)*wA,sevB=severity(cb)*wB;
  const adverseA=["Retrograde","Debilitated","Combust","Afflicted"].includes(ca);
  const adverseB=["Retrograde","Debilitated","Combust","Afflicted"].includes(cb);
  if(adverseA||adverseB){
@@ -533,10 +599,44 @@ function render(){
    ? " Rahu/Ketu exaltation/debilitation varies by tradition."
    : "";
 
+ // Relationship modifier
+ if(rv==="Conjunction" && (adverseA||adverseB)){
+   roles=[...new Set(["Negative Filter","Stabilizer",...roles])].slice(0,6);
+   rationale+=" Because the planets are conjunct, the stressed condition is treated as directly blended into the pair.";
+ }
+ if(rv==="Parivartana"){
+   if(adverseA&&adverseB){
+     primary=sA[0]+" + "+sB[0];
+     secondary=[sA[1],sB[1]].filter(Boolean).join(" / ");
+   }
+   roles=[...new Set(["Harmonizer","Stabilizer",...roles])].slice(0,6);
+   rationale+=" Parivartana is treated as a strong mutual dependency, so coordinated balancing is preferred over a one-sided remedy.";
+ }
+ if(rv==="Mutual Aspect"){
+   roles=[...new Set(["Stabilizer",...roles])].slice(0,6);
+   rationale+=" Mutual aspect keeps both planets active in the recommendation without treating them as fully merged.";
+ }
+ if(rv==="1st → 2nd Aspect"){
+   if(severity(ca)>=2){primary=sA[0]; secondary=sB[0]+" / "+sA[1];}
+   rationale+=" The 1st planet is the directional influencer, so its condition receives additional weighting.";
+ }
+ if(rv==="2nd → 1st Aspect"){
+   if(severity(cb)>=2){primary=sB[0]; secondary=sA[0]+" / "+sB[1];}
+   rationale+=" The 2nd planet is the directional influencer, so its condition receives additional weighting.";
+ }
+ if(rv==="Same Rasi"){
+   rationale+=" Same Rasi is treated as a shared-sign environment, not automatically as a tight conjunction.";
+ }
+ if(rv==="Dasha–Bhukti"){
+   if(severity(cb)>=severity(ca)){primary=sB[0]; secondary=sA[0]+" / "+sB[1];}
+   roles=[...new Set(["Retrograde Reserve","Stabilizer",...roles])].slice(0,6);
+   rationale+=" In Dasha–Bhukti mode, the 1st planet is treated as the period context and the 2nd as the active sub-period modifier.";
+ }
+
  const note=(ov?.note || 'System-derived combination. This label is descriptive and is not presented as a universal classical dosha name.')+nodeNote;
 
  out.innerHTML=
- '<div class="metric wide spinel-card"><span class="source-tag">CONDITION-AWARE TWO-GRAHA ANALYSIS</span><div class="spinel-name">'+esc(title)+'</div><div class="mini">'+esc(A.display)+' ['+esc(ca)+'] + '+esc(B.display)+' ['+esc(cb)+']</div></div>'+
+ '<div class="metric wide spinel-card"><span class="source-tag">CONTEXT-AWARE TWO-GRAHA ANALYSIS</span><div class="spinel-name">'+esc(title)+'</div><div class="mini">'+esc(A.display)+' ['+esc(ca)+'] + '+esc(B.display)+' ['+esc(cb)+'] • '+esc(rv)+'</div></div>'+
  '<div class="metric wide"><span>Dosha / negative-energy pattern</span><strong>'+esc(negative)+'</strong></div>'+
  '<div class="metric"><span>Primary Recommended Spinel</span><strong>'+esc(primary)+'</strong></div>'+
  '<div class="metric"><span>Secondary / Conditional Spinel</span><strong>'+esc(secondary)+'</strong></div>'+
@@ -548,7 +648,7 @@ function render(){
  '<div class="metric wide"><span>1st Planet baseline</span><strong>'+esc(A.primary)+' — '+esc(A.roles.join(", "))+'</strong></div>'+
  '<div class="metric wide"><span>2nd Planet baseline</span><strong>'+esc(B.primary)+' — '+esc(B.roles.join(", "))+'</strong></div>';
 }
-[p1,p2,c1,c2].forEach(el=>el.onchange=render);
+[p1,p2,c1,c2,rel].forEach(el=>el.onchange=render);
 render();
 </script>
 </body>
