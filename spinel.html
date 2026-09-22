@@ -79,23 +79,24 @@
 
 
 <section class="card">
-<h2>Affordable Gemstone Reference</h2>
-<p class="mini">These are functional alternatives in this practitioner framework, not gemological equivalents to Spinel.</p>
+<h2>Gemstone Alternative Reference</h2>
+<p class="mini">The mid-range and affordable options below are functional alternatives in this practitioner framework, not gemological equivalents to Spinel.</p>
 <table class="alt-table">
-<thead><tr><th>Premium Spinel</th><th>Affordable Alternative</th><th>Main Function</th></tr></thead>
+<thead><tr><th>Premium Spinel</th><th>Mid-range Option</th><th>Affordable Alternative</th><th>Main Function</th></tr></thead>
 <tbody>
-<tr><td>Red Spinel</td><td><strong>Red Garnet</strong></td><td>Enhancer • Courage • Activation</td></tr>
-<tr><td>Orange / Orange-Red Spinel</td><td><strong>Carnelian</strong></td><td>Motivation • Activation</td></tr>
-<tr><td>Pink / Light Pink Spinel</td><td><strong>Rose Quartz</strong></td><td>Emotional Harmonizer • Gentle Venus/Moon Support</td></tr>
-<tr><td>Lavender Spinel</td><td><strong>Amethyst</strong></td><td>Calming • Emotional / Spiritual Stabilizer</td></tr>
-<tr><td>Green / Bluish-Green Spinel</td><td><strong>Green Aventurine</strong></td><td>Mental Stabilizer • Gentle Mercury Support</td></tr>
-<tr><td>Yellow Spinel</td><td><strong>Citrine</strong></td><td>Jupiter Enhancer • Wisdom / Prosperity Support</td></tr>
-<tr><td>Purple / Violet Spinel</td><td><strong>Amethyst</strong></td><td>Spiritual Stabilizer • Retrograde Reserve • Wisdom Support</td></tr>
-<tr><td>Grey Spinel</td><td><strong>Smoky Quartz</strong></td><td>Stabilizer • Grounding</td></tr>
-<tr><td>Black Spinel</td><td><strong>Black Tourmaline</strong></td><td>Negative Filter • Shield • Grounding</td></tr>
-<tr><td>Dark Blue Spinel</td><td><strong>Iolite</strong></td><td>Controlled Saturn Support • Stabilizer</td></tr>
+<tr><td>Red Spinel</td><td>—</td><td><strong>Red Garnet</strong></td><td>Enhancer • Courage • Activation</td></tr>
+<tr><td>Orange / Orange-Red Spinel</td><td>—</td><td><strong>Carnelian</strong></td><td>Motivation • Activation</td></tr>
+<tr><td>Pink / Light Pink Spinel</td><td>—</td><td><strong>Rose Quartz</strong></td><td>Emotional Harmonizer • Gentle Venus/Moon Support</td></tr>
+<tr><td>Lavender Spinel</td><td><strong>Aquamarine*</strong></td><td><strong>Amethyst</strong></td><td>*When Moon/Mercury-style calming, communication or emotional cooling is the objective</td></tr>
+<tr><td>Green / Bluish-Green Spinel</td><td><strong>Aquamarine</strong></td><td><strong>Green Aventurine</strong></td><td>Mercury/Moon • Mental Clarity • Communication • Stabilizer • Retrograde Reserve</td></tr>
+<tr><td>Yellow Spinel</td><td>—</td><td><strong>Citrine</strong></td><td>Jupiter Enhancer • Wisdom / Prosperity Support</td></tr>
+<tr><td>Purple / Violet Spinel</td><td>—</td><td><strong>Amethyst</strong></td><td>Spiritual Stabilizer • Retrograde Reserve • Wisdom Support</td></tr>
+<tr><td>Grey Spinel</td><td>—</td><td><strong>Smoky Quartz</strong></td><td>Stabilizer • Grounding</td></tr>
+<tr><td>Black Spinel</td><td>—</td><td><strong>Black Tourmaline</strong></td><td>Negative Filter • Shield • Grounding</td></tr>
+<tr><td>Dark Blue Spinel</td><td><strong>Iolite</strong></td><td><strong>Sodalite</strong></td><td>Controlled Saturn Support • Stabilizer</td></tr>
 </tbody>
 </table>
+<div class="notice" style="margin-top:12px"><b>Aquamarine classification:</b> Primary Graha = Mercury; secondary resonance = Moon. Best suited to Mental Clarity, Communication Support, Emotional Cooling, Stabilizer and Retrograde Reserve roles. It is not used here as a strong Saturn/Rahu/Ketu filter.</div>
 </section>
 <footer>Shri Ugra Mahalakshmy Astrology V2 • Spinel Graha Master • Practitioner framework</footer>
 </main>
@@ -521,6 +522,27 @@ const conditionStone={
 };
 
 
+const midRangeAlternatives=[
+ {match:["green spinel","bluish-green spinel"],stone:"Aquamarine",role:"Mercury/Moon • Mental Clarity • Communication Support • Emotional Cooling • Retrograde Reserve"}
+];
+
+function midRangeFor(spinelText,planet,roles=[]){
+ const txt=String(spinelText||"").toLowerCase();
+ const hits=[];
+ midRangeAlternatives.forEach(x=>{
+   if(x.match.some(m=>txt.includes(m)) && !hits.some(h=>h.stone===x.stone)) hits.push({stone:x.stone,role:x.role});
+ });
+ if(!hits.length && planet==="Mercury" && (roles.includes("Mental Clarity")||roles.includes("Retrograde Reserve")||roles.includes("Stabilizer"))){
+   hits.push({stone:"Aquamarine",role:"Mercury/Moon • Mental Clarity • Communication Support • Emotional Cooling • Retrograde Reserve"});
+ }
+ return hits;
+}
+function midHtml(spinelText,planet,roles=[]){
+ const hits=midRangeFor(spinelText,planet,roles);
+ if(!hits.length) return '<div class="mini">No dedicated mid-range stone assigned for this recommendation.</div>';
+ return hits.map(x=>'<div><strong>'+esc(x.stone)+'</strong><div class="mini">'+esc(x.role)+'</div></div>').join('<div style="height:8px"></div>');
+}
+
 const affordableAlternatives=[
  {match:["black spinel"],stone:"Black Tourmaline",role:"Negative Filter • Shield • Grounding"},
  {match:["grey spinel","smoky grey"],stone:"Smoky Quartz",role:"Stabilizer • Grounding"},
@@ -617,6 +639,7 @@ function render(){
    '<div class="metric"><span>Primary Spinel</span><strong>'+esc(primary)+'</strong></div>'+
    '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(secondary||A.secondary)+'</strong></div>'+
    '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
+   '<div class="metric"><span>💠 Mid-range Gemstone Option</span>'+midHtml(primary,a,roles)+'</div>'+
    '<div class="metric"><span>💎 Affordable Gemstone Substitute</span>'+altHtml(primary,roles)+'</div>'+
    '<div class="metric wide"><span>💎 Affordable Substitute for Secondary Spinel</span>'+altHtml(secondary||A.secondary,roles)+'</div>'+
  '<div class="metric wide"><span>Relationship / Context</span><strong>'+esc(RP.strategy)+': '+esc(RP.effect)+'</strong></div>'+
