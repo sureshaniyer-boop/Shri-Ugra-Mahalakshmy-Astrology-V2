@@ -36,15 +36,26 @@
 <section class="card hero">
 <span class="badge">Gemstone Reference Engine</span>
 <h1>9-Graha Spinel Combination Master</h1>
-<p>Select two Grahas to generate a practitioner-oriented Spinel recommendation, the negative pattern being addressed, and the intended function of the stone.</p>
+<p>Select two Grahas and their conditions to generate a condition-aware Spinel recommendation, the negative pattern being addressed, and the intended function of the stone.</p>
 <div class="notice"><b>Reference rule:</b> Spinel mineral identity and colour are gemological facts. Planetary correspondences, dosha interpretations and energetic functions on this page are <b>SYSTEM DERIVED / PRACTITIONER FRAMEWORK</b>, not scientifically proven effects and not automatically a universally accepted classical Jyotisha rule. Use chart context before prescribing any gemstone.</div>
 </section>
 
 <section class="card">
 <div class="selector-grid">
-<div><label for="p1">1st Planet</label><select id="p1"></select></div>
-<div><label for="p2">2nd Planet</label><select id="p2"></select></div>
+<div>
+  <label for="p1">1st Planet</label>
+  <select id="p1"></select>
+  <label for="c1" style="margin-top:10px">1st Planet Condition</label>
+  <select id="c1"></select>
 </div>
+<div>
+  <label for="p2">2nd Planet</label>
+  <select id="p2"></select>
+  <label for="c2" style="margin-top:10px">2nd Planet Condition</label>
+  <select id="c2"></select>
+</div>
+</div>
+<div class="notice" style="margin-top:12px"><b>Condition logic:</b> The engine changes its strategy according to planetary condition. Retrograde emphasizes reserve/stabilization; Debilitated emphasizes controlled support; Combust emphasizes protection from weakened expression; Afflicted prioritizes filtering; Exalted generally avoids unnecessary amplification. Astronomically or classically inapplicable conditions are flagged automatically.</div>
 <div id="out" class="details"></div>
 </section>
 
@@ -313,47 +324,232 @@ const overrides = {
 };
 
 const order=["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
+const conditionOrder=["Normal","Retrograde","Debilitated","Combust","Afflicted","Exalted"];
+
+const applicability={
+ Sun:{Retrograde:false,Combust:false},
+ Moon:{Retrograde:false,Combust:false},
+ Rahu:{Combust:false},
+ Ketu:{Combust:false}
+};
+
+const conditionProfiles={
+ Normal:{
+  label:"Normal",
+  focus:"Baseline planetary support",
+  suffix:"No additional condition modifier is applied.",
+  roles:[]
+ },
+ Retrograde:{
+  label:"Retrograde",
+  focus:"Internalized / irregular planetary expression",
+  suffix:"Prioritize stabilization and Retrograde Reserve rather than aggressive amplification.",
+  roles:["Retrograde Reserve","Stabilizer"]
+ },
+ Debilitated:{
+  label:"Debilitated",
+  focus:"Weak or compromised planetary expression",
+  suffix:"Use controlled support first; strengthen constructively without blindly amplifying the planet.",
+  roles:["Stabilizer","Controlled Enhancer"]
+ },
+ Combust:{
+  label:"Combust",
+  focus:"Planetary expression weakened or overshadowed by proximity to the Sun",
+  suffix:"Prioritize stabilization and protected support; avoid treating combustion as a simple lack of power.",
+  roles:["Stabilizer","Negative Filter"]
+ },
+ Afflicted:{
+  label:"Afflicted",
+  focus:"Disrupted / pressured planetary expression",
+  suffix:"Filter the disruptive expression first, then add support only if the chart requires it.",
+  roles:["Negative Filter","Shield","Grounding"]
+ },
+ Exalted:{
+  label:"Exalted",
+  focus:"Strong planetary expression",
+  suffix:"Avoid unnecessary amplification. Prefer harmonizing or filtering only when the strong planet is producing excess.",
+  roles:["Stabilizer","Harmonizer"]
+ }
+};
+
+const conditionStone={
+ Sun:{
+  Normal:["Red Spinel","Orange-Red Spinel"],
+  Debilitated:["Red Spinel","Orange-Red Spinel"],
+  Afflicted:["Red Spinel in controlled use","Black or Grey Spinel if filtering is needed"],
+  Exalted:["No automatic enhancer","Red Spinel only if a specific supportive objective exists"]
+ },
+ Moon:{
+  Normal:["Light Pink Spinel","Lavender Spinel"],
+  Debilitated:["Light Pink Spinel","Lavender Spinel"],
+  Afflicted:["Lavender Spinel","Black Spinel only when strong filtering/grounding is required"],
+  Exalted:["Lavender Spinel","Light Pink Spinel only for gentle harmonization"]
+ },
+ Mars:{
+  Normal:["Red Spinel","Deep Red Spinel"],
+  Retrograde:["Deep Red Spinel in controlled use","Grey Spinel for stabilization"],
+  Debilitated:["Red Spinel in controlled use","Deep Red Spinel"],
+  Combust:["Deep Red Spinel in controlled use","Grey Spinel"],
+  Afflicted:["Grey or Black Spinel","Red Spinel only after filtering the aggressive pattern"],
+  Exalted:["Grey Spinel if excess heat needs control","Avoid automatic Red Spinel amplification"]
+ },
+ Mercury:{
+  Normal:["Green Spinel","Bluish-Green Spinel"],
+  Retrograde:["Green Spinel","Bluish-Green Spinel"],
+  Debilitated:["Green Spinel","Bluish-Green Spinel"],
+  Combust:["Green Spinel","Grey Spinel as stabilizing support"],
+  Afflicted:["Green Spinel","Black Spinel if strong mental over-stimulation needs filtering"],
+  Exalted:["Green Spinel only for harmonization","Avoid unnecessary amplification"]
+ },
+ Jupiter:{
+  Normal:["Yellow Spinel","Purple Spinel"],
+  Retrograde:["Purple Spinel","Yellow Spinel in controlled use"],
+  Debilitated:["Yellow Spinel","Purple Spinel"],
+  Combust:["Purple Spinel","Yellow Spinel in controlled use"],
+  Afflicted:["Purple Spinel","Black Spinel if distortion/filtering is the main problem"],
+  Exalted:["Purple Spinel for refinement","Avoid automatic Yellow Spinel amplification"]
+ },
+ Venus:{
+  Normal:["Pink Spinel","Lavender Spinel"],
+  Retrograde:["Lavender Spinel","Pink Spinel"],
+  Debilitated:["Pink Spinel","Lavender Spinel"],
+  Combust:["Lavender Spinel","Pink Spinel in controlled use"],
+  Afflicted:["Lavender Spinel","Black Spinel where desire/attachment needs filtering"],
+  Exalted:["Lavender Spinel for harmonization","Avoid unnecessary Pink Spinel amplification"]
+ },
+ Saturn:{
+  Normal:["Grey Spinel","Black / Dark Blue Spinel"],
+  Retrograde:["Grey Spinel","Black Spinel"],
+  Debilitated:["Grey Spinel","Dark Blue Spinel only if Saturn truly requires strengthening"],
+  Combust:["Grey Spinel","Black Spinel"],
+  Afflicted:["Black Spinel","Grey Spinel"],
+  Exalted:["Grey Spinel","Black Spinel only if strong filtering is required"]
+ },
+ Rahu:{
+  Normal:["Black Spinel","Smoky Grey / Violet Spinel"],
+  Retrograde:["Black Spinel","Grey Spinel"],
+  Debilitated:["Black Spinel","Violet Spinel"],
+  Afflicted:["Black Spinel","Grey Spinel"],
+  Exalted:["Grey or Violet Spinel","Black Spinel only if excess requires filtering"]
+ },
+ Ketu:{
+  Normal:["Violet Spinel","Black / Lavender Spinel"],
+  Retrograde:["Violet Spinel","Black Spinel"],
+  Debilitated:["Violet Spinel","Lavender Spinel"],
+  Afflicted:["Black Spinel","Violet Spinel"],
+  Exalted:["Lavender or Violet Spinel","Black Spinel only if grounding is necessary"]
+ }
+};
+
 function keyFor(a,b){return [a,b].sort((x,y)=>order.indexOf(x)-order.indexOf(y)).join("|")}
 function esc(v){return String(v??"—").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 function pills(arr){return '<div class="role-row">'+arr.map((x,i)=>'<span class="role-pill '+(i===0?'primary':'')+'">'+esc(x)+'</span>').join('')+'</div>'}
+function applicable(planet,condition){return applicability[planet]?.[condition]!==false}
+function stoneFor(planet,condition){
+ const map=conditionStone[planet]||{};
+ return map[condition]||[planets[planet].primary,planets[planet].secondary];
+}
+function rolesFor(planet,condition){
+ return [...new Set([...(conditionProfiles[condition]?.roles||[]),...planets[planet].roles])].slice(0,5);
+}
+function conditionText(planet,condition){
+ if(!applicable(planet,condition)){
+   if(condition==="Retrograde"&&(planet==="Sun"||planet==="Moon")) return planet+" does not become retrograde in standard geocentric Jyotisha astronomy. Select another condition.";
+   if(condition==="Combust") return planet+" is not treated as combust in this engine. Combustion applies to planets that can approach the Sun closely enough for that Jyotisha condition.";
+   return condition+" is not applicable to "+planet+" in this engine.";
+ }
+ if((planet==="Rahu"||planet==="Ketu")&&(condition==="Exalted"||condition==="Debilitated")){
+   return "Rahu/Ketu exaltation and debilitation schemes differ between Jyotisha traditions. This result uses the practitioner framework, not a universal classical rule.";
+ }
+ return conditionProfiles[condition].suffix;
+}
+function severity(condition){
+ return {Normal:0,Exalted:1,Retrograde:2,Debilitated:3,Combust:3,Afflicted:4}[condition]??0;
+}
 
-const p1=document.getElementById("p1"),p2=document.getElementById("p2"),out=document.getElementById("out");
+const p1=document.getElementById("p1"),p2=document.getElementById("p2"),c1=document.getElementById("c1"),c2=document.getElementById("c2"),out=document.getElementById("out");
 order.forEach(k=>{p1.add(new Option(planets[k].display,k));p2.add(new Option(planets[k].display,k))});
-p1.value="Jupiter"; p2.value="Saturn";
+conditionOrder.forEach(k=>{c1.add(new Option(k,k));c2.add(new Option(k,k))});
+p1.value="Jupiter"; p2.value="Saturn"; c1.value="Retrograde"; c2.value="Afflicted";
 
 function render(){
- const a=p1.value,b=p2.value,A=planets[a],B=planets[b];
+ const a=p1.value,b=p2.value,ca=c1.value,cb=c2.value,A=planets[a],B=planets[b];
+ const invalid=[];
+ if(!applicable(a,ca)) invalid.push(conditionText(a,ca));
+ if(!applicable(b,cb)) invalid.push(conditionText(b,cb));
+ if(invalid.length){
+  out.innerHTML='<div class="metric wide spinel-card"><span class="source-tag">CONDITION CHECK</span><div class="spinel-name">Condition requires correction</div></div>'+
+  '<div class="metric wide"><span>Why</span><strong>'+invalid.map(esc).join("<br>")+'</strong></div>';
+  return;
+ }
+
+ const sA=stoneFor(a,ca),sB=stoneFor(b,cb);
+ const rA=rolesFor(a,ca),rB=rolesFor(b,cb);
+ const cpA=conditionProfiles[ca],cpB=conditionProfiles[cb];
+
  if(a===b){
+   const primary=severity(cb)>severity(ca)?sB[0]:sA[0];
+   const secondary=[sA[1],sB[1]].filter(Boolean).filter((v,i,x)=>x.indexOf(v)===i).join(" / ");
+   const roles=[...new Set([...rA,...rB])].slice(0,5);
    out.innerHTML=
-   '<div class="metric wide spinel-card"><span class="source-tag">SINGLE-GRAHA PROFILE</span><div class="spinel-name">'+esc(A.display)+'</div></div>'+
+   '<div class="metric wide spinel-card"><span class="source-tag">SINGLE-GRAHA CONDITION PROFILE</span><div class="spinel-name">'+esc(A.display)+'</div><div class="mini">'+esc(ca)+' + '+esc(cb)+'</div></div>'+
    '<div class="metric wide"><span>Dosha / imbalance pattern</span><strong>'+esc(A.dosha)+'</strong></div>'+
    '<div class="metric wide"><span>Negative pattern to counter / filter</span><strong>'+esc(A.negative)+'</strong></div>'+
-   '<div class="metric"><span>Primary Spinel</span><strong>'+esc(A.primary)+'</strong></div>'+
-   '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(A.secondary)+'</strong></div>'+
-   '<div class="metric"><span>Functional Role</span>'+pills(A.roles)+'</div>'+
+   '<div class="metric"><span>Primary Spinel</span><strong>'+esc(primary)+'</strong></div>'+
+   '<div class="metric"><span>Secondary Spinel</span><strong>'+esc(secondary||A.secondary)+'</strong></div>'+
+   '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
+   '<div class="metric wide"><span>Condition strategy</span><strong>'+esc(ca)+': '+esc(conditionText(a,ca))+'<br>'+esc(cb)+': '+esc(conditionText(b,cb))+'</strong></div>'+
    '<div class="metric wide"><span>Caution</span><strong>'+esc(A.caution)+'</strong></div>';
    return;
  }
+
  const ov=overrides[keyFor(a,b)];
- const title=ov?.title || (A.display+' + '+B.display+' Combined Graha Pattern');
- const negative=ov?.negative || (A.negative+' Combined with: '+B.negative);
- const primary=ov?.primary || A.primary;
- const secondary=ov?.secondary || (B.primary+' / '+A.secondary);
- const roles=ov?.roles || [...new Set([...A.roles,...B.roles])].slice(0,5);
- const rationale=ov?.rationale || ('Primary emphasis follows '+A.display+' while '+B.display+' is supported through '+B.primary+'. Final prescription should depend on chart context and whether the objective is enhancement, stabilization or filtering.');
- const note=ov?.note || 'System-derived combination. This label is descriptive and is not presented as a universal classical dosha name.';
+ let title=ov?.title || (A.display+' + '+B.display+' Combined Graha Pattern');
+ let negative=ov?.negative || (A.negative+' Combined with: '+B.negative);
+ let primary=ov?.primary || sA[0];
+ let secondary=ov?.secondary || (sB[0]+' / '+sA[1]);
+ let roles=ov?.roles || [...new Set([...rA,...rB])].slice(0,5);
+ let rationale=ov?.rationale || ('Primary emphasis follows '+A.display+' while '+B.display+' is supported through '+sB[0]+'.');
+
+ // Condition-aware strategy: stronger adverse condition takes priority.
+ const sevA=severity(ca),sevB=severity(cb);
+ const adverseA=["Retrograde","Debilitated","Combust","Afflicted"].includes(ca);
+ const adverseB=["Retrograde","Debilitated","Combust","Afflicted"].includes(cb);
+ if(adverseA||adverseB){
+   if(sevA>sevB){primary=sA[0]; secondary=sB[0]+' / '+sA[1];}
+   else if(sevB>sevA){primary=sB[0]; secondary=sA[0]+' / '+sB[1];}
+   else if(sevA===sevB&&sevA>0){primary=sA[0]+' + '+sB[0]; secondary=[sA[1],sB[1]].filter(Boolean).join(" / ");}
+   roles=[...new Set([...rA,...rB,...roles])].slice(0,6);
+   rationale+=' Condition modifier: '+a+' is '+ca+' and '+b+' is '+cb+'. The engine therefore prioritizes the more stressed condition before baseline pair enhancement.';
+ }
+
+ if(ca==="Exalted"&&cb==="Exalted"){
+   primary="No automatic enhancer";
+   secondary=sA[0]+' / '+sB[0]+' only for harmonization or a specific chart objective';
+   roles=["Stabilizer","Harmonizer","Negative Filter"];
+   rationale+=" Both planets are selected as Exalted, so the engine avoids automatic strengthening.";
+ }
+ const nodeNote=((a==="Rahu"||a==="Ketu")&&(ca==="Exalted"||ca==="Debilitated"))||((b==="Rahu"||b==="Ketu")&&(cb==="Exalted"||cb==="Debilitated"))
+   ? " Rahu/Ketu exaltation/debilitation varies by tradition."
+   : "";
+
+ const note=(ov?.note || 'System-derived combination. This label is descriptive and is not presented as a universal classical dosha name.')+nodeNote;
+
  out.innerHTML=
- '<div class="metric wide spinel-card"><span class="source-tag">SYSTEM DERIVED — TWO-GRAHA ANALYSIS</span><div class="spinel-name">'+esc(title)+'</div><div class="mini">'+esc(A.display)+' + '+esc(B.display)+'</div></div>'+
+ '<div class="metric wide spinel-card"><span class="source-tag">CONDITION-AWARE TWO-GRAHA ANALYSIS</span><div class="spinel-name">'+esc(title)+'</div><div class="mini">'+esc(A.display)+' ['+esc(ca)+'] + '+esc(B.display)+' ['+esc(cb)+']</div></div>'+
  '<div class="metric wide"><span>Dosha / negative-energy pattern</span><strong>'+esc(negative)+'</strong></div>'+
  '<div class="metric"><span>Primary Recommended Spinel</span><strong>'+esc(primary)+'</strong></div>'+
  '<div class="metric"><span>Secondary / Conditional Spinel</span><strong>'+esc(secondary)+'</strong></div>'+
  '<div class="metric"><span>Functional Role</span>'+pills(roles)+'</div>'+
+ '<div class="metric wide"><span>'+esc(A.display)+' condition strategy</span><strong>'+esc(cpA.focus)+': '+esc(conditionText(a,ca))+'<br>Preferred: '+esc(sA.join(" / "))+'</strong></div>'+
+ '<div class="metric wide"><span>'+esc(B.display)+' condition strategy</span><strong>'+esc(cpB.focus)+': '+esc(conditionText(b,cb))+'<br>Preferred: '+esc(sB.join(" / "))+'</strong></div>'+
  '<div class="metric wide"><span>Why this recommendation</span><strong>'+esc(rationale)+'</strong></div>'+
  '<div class="metric wide"><span>Classification note</span><strong>'+esc(note)+'</strong></div>'+
  '<div class="metric wide"><span>1st Planet baseline</span><strong>'+esc(A.primary)+' — '+esc(A.roles.join(", "))+'</strong></div>'+
  '<div class="metric wide"><span>2nd Planet baseline</span><strong>'+esc(B.primary)+' — '+esc(B.roles.join(", "))+'</strong></div>';
 }
-p1.onchange=render;p2.onchange=render;render();
+[p1,p2,c1,c2].forEach(el=>el.onchange=render);
+render();
 </script>
 </body>
 </html>
